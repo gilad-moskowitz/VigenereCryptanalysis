@@ -84,7 +84,9 @@ def CryptoAnalysisVigenere(ciphertext):
     for i in range(3, int(len(ciphertext)**(1/2))):
         guessedM = KasiskiTest(ciphertext, i, 0)
         if(guessedM != -1):
-            break
+            mIOC = indexOfCoincidence(ciphertext, guessedM)
+            if((0.055 < mIOC) and (0.075 > mIOC)):
+                break
     testingIOC = []
     if(guessedM == -1):
         for length in range(1, int(len(ciphertext)/2)):
