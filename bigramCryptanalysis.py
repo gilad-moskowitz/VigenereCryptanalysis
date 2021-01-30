@@ -82,6 +82,8 @@ def findingTheKey(ciphertext, guessedM):
     return key
 
 def keyFinder2gram(ciphertext, m, probabilityDict = bigramLogFreq):
+    if (m == 1):
+        return findingTheKey(ciphertext, m)
     Alphabet=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
     maxLen = int(len(ciphertext)/m)
     keyArray = []
@@ -132,7 +134,9 @@ def CryptoAnalysisVigenere(ciphertext):
     for i in range(3, int(len(ciphertext)**(1/2))):
         guessedM = KasiskiTest(ciphertext, i, 0)
         if(guessedM != -1):
-            break
+            mIOC = indexOfCoincidence(ciphertext, guessedM)
+            if((0.055 < mIOC) and (0.075 > mIOC)):
+                break
     testingIOC = []
     if(guessedM == -1):
         for length in range(1, int(len(ciphertext)/2)):
