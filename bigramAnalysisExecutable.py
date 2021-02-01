@@ -128,10 +128,12 @@ def keyFinder2gram(ciphertext, m, probabilityDict = bigramLogFreq):
                 key.append(keyArray[(ind - 1)%(m-1)][0][1])
     return key
 
-def CryptoAnalysisVigenere(ciphertext):
+def CryptoAnalysisVigenere(ciphertext, maxLenOfKey = 0):
+    if(maxLenOfKey < 1):
+        maxLenOfKey = int(len(ciphertext)**(1/2))
     Alphabet=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
     allPossiblePlainTexts = {}
-    for i in range(3, int(len(ciphertext)**(1/2))):
+    for i in range(3, maxLenOfKey):
         guessedM = KasiskiTest(ciphertext, i, 0)
         if(guessedM != -1):
             mIOC = indexOfCoincidence(ciphertext, guessedM)
@@ -139,7 +141,7 @@ def CryptoAnalysisVigenere(ciphertext):
                 break
     testingIOC = []
     if(guessedM == -1):
-        for length in range(1, int(len(ciphertext)/2)):
+        for length in range(1, maxLenOfKey):
             testingIOC.append(indexOfCoincidence(ciphertext, length))
         for test in testingIOC:
             if((0.05 < test) and (0.08 > test)):
@@ -164,11 +166,20 @@ def getCiphertext():
         if(char.isalpha()):
             alphaCipher += char
     return alphaCipher
-    
+
+def getKeyLength():
+    knowledge = input("Do you know the key length (y/n)?")
+    if((knowledge.lower() == "y") or (knowledge.lower() == "yes")):
+        return input("Please enter the max key length: ")
+    elif((knowledge.lower() == "n") or (knowledge.lower() == "no")):
+        return 0
+    else:
+        return getKeyLength()
+
 def tryAgain():
     again = input("Would you like to try again (y/n)?")
     if((again.lower() == "y") or (again.lower() == "yes")):
-        return getCiphertext()
+        return True
     elif((again.lower() == "n") or (again.lower() == "no")):
         end = input("Sorry I couldn't decode for you.")
         return False
@@ -176,11 +187,15 @@ def tryAgain():
         return tryAgain()
     
 if __name__ == '__main__':
-    cipherText = getCiphertext()
-    if(len(cipherText) < 30):
-        print("This ciphertext is too short, the algorithm won't run properly")
-        tryAgain()
-    else:
-        possiblePlainText = CryptoAnalysisVigenere(cipherText)
-        print(possiblePlainText)
-        input("End.")
+    trying = True
+    while(trying):
+        cipherText = getCiphertext()
+        keyLength = getKeyLength()
+        if(len(cipherText) < 30):
+            print("This ciphertext is too short, the algorithm won't run properly")
+            trying = tryAgain()
+        else:
+            possiblePlainText = CryptoAnalysisVigenere(cipherText)
+            print(possiblePlainText)
+            input("End.")
+            trying = False
