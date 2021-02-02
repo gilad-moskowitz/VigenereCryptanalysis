@@ -1,7 +1,6 @@
 import math
-from english_words import english_words_lower_alpha_set as dic
-from bigramFreq import bigramFrequencies
 from bigramFreq import bigramLogFreq
+from trigramFreq import trigramLogFreq
 
 def gcd_list(integers):
     listToUse = [i for i in integers]
@@ -14,11 +13,11 @@ def gcd_list(integers):
         listToUse.pop(0)
         listToUse.pop(0)
     return math.gcd(listToUse[0], listToUse[1])
-
+    
 def frequencyOfLetters(string):
     Alphabet=['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
     return [string.lower().count(Alphabet[i]) for i in range(0, 26)]
-
+    
 def KasiskiTest(ciphertext, substringlen = 3, start = 0, stop = False):
     a = 0
     test = ciphertext[start:(start + substringlen)]
@@ -41,7 +40,7 @@ def KasiskiTest(ciphertext, substringlen = 3, start = 0, stop = False):
         return KasiskiTest(ciphertext, substringlen, newStart)
     else:
         return -1
-    
+        
 def indexOfCoincidence(ciphertext, mValue = 1):
     maxLen = int(len(ciphertext)/mValue)
     totalIOC = []
@@ -56,7 +55,7 @@ def indexOfCoincidence(ciphertext, mValue = 1):
             IOC += (freq[q]*(freq[q] - 1))/(len(substring)*(len(substring) - 1))
         totalIOC.append(IOC)
     return (sum(totalIOC)/len(totalIOC))
-
+    
 def findingTheKey(ciphertext, guessedM):
     probabilities = [0.082, 0.015, 0.028, 0.043, 0.127, 0.022, 0.020, 0.061, 0.070, 0.002, 0.008, 0.040, 0.024, 0.067, 0.075, 0.019, 0.001, 0.060, 0.063, 0.091, 0.028, 0.010, 0.023, 0.001, 0.020, 0.001]
     maxLen = int(len(ciphertext)/guessedM)
@@ -80,7 +79,7 @@ def findingTheKey(ciphertext, guessedM):
             #print(M_g)
         key.append(allM.index(min(allM)))
     return key
-
+    
 def keyFinder2gram(ciphertext, m, probabilityDict = bigramLogFreq):
     if (m == 1):
         return findingTheKey(ciphertext, m)
@@ -127,7 +126,18 @@ def keyFinder2gram(ciphertext, m, probabilityDict = bigramLogFreq):
             else:
                 key.append(keyArray[(ind - 1)%(m-1)][0][1])
     return key
-
+    
+def trigramCheck(string):
+    score = 0
+    i = 0
+    while(i <= len(string) - 3):
+        if string[i:i+3].lower() not in trigramLogFreq:
+            score += -100
+        else:
+            score += trigramLogFreq[string[i:i+3].lower()]
+        i += 1
+    return score
+    
 def CryptoAnalysisVigenere(ciphertext, maxLenOfKey = 0):
     if(maxLenOfKey < 1):
         maxLenOfKey = int(len(ciphertext)**(1/2))
@@ -157,7 +167,17 @@ def CryptoAnalysisVigenere(ciphertext, maxLenOfKey = 0):
         for j in range(0, len(ciphertext)):
             plaintext += Alphabet[(Alphabet.index(ciphertext[j].lower()) - key[j%guessedM])%26]
         allPossiblePlainTexts[guessedM] = [key, plaintext]
-    return allPossiblePlainTexts
+    bestKey = 0
+    bestKeyScore = 0
+    for possibility in allPossiblePlainTexts:
+        currentKeyScore = trigramCheck(allPossiblePlainTexts[possibility][1])
+        if ((currentKeyScore) > bestKeyScore or (bestKeyScore == 0)):
+            bestKey = possibility
+            bestKeyScore = currentKeyScore
+    actualKey = ""
+    for element in allPossiblePlainTexts[bestKey][0]:
+        actualKey += Alphabet[element]
+    return [actualKey, allPossiblePlainTexts[bestKey][1]]
     
 def getCiphertext():
     generalCiphertext = input("Please enter the ciphertext: ")
@@ -195,7 +215,8 @@ if __name__ == '__main__':
             print("This ciphertext is too short, the algorithm won't run properly")
             trying = tryAgain()
         else:
-            possiblePlainText = CryptoAnalysisVigenere(cipherText)
-            print(possiblePlainText)
+            mostLikely = CryptoAnalysisVigenere(cipherText)
+            print("The keyword is: ", mostLikely[0])
+            print("The plaintext is: ", mostLikely[1])
             input("End.")
             trying = False
